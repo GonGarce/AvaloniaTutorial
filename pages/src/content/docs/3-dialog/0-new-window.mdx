@@ -1,0 +1,110 @@
+---
+title: Crear la nueva ventana
+---
+
+Lo primero que debemos hacer es crear una nueva vista, en este caso será una ventana, y su respectivo ViewModel.
+
+## Crear el ViewModel
+
+Creamos una nueva clase ``ViewModels/MusicStoreViewModel.cs`` para contener la lógica de nuestra ventande búsqueda, de momento sin ninguna lógica pero con algunas propiedades que vamos a necesitar:
+* El texto del cuadro de búsqueda
+* Un booleano para saber si está cargando datos
+* La lista de albumes encontrados
+* El album seleccionado
+* Un comando para el botón de comprar
+
+````cs title=MusicStoreViewModel
+using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+
+namespace Avalonia.MusicStore.ViewModels;
+
+public partial class MusicStoreViewModel: ViewModelBase
+{
+    public MusicStoreViewModel()
+    {
+        
+    }
+    
+    [ObservableProperty]
+    private string? _searchText;
+    
+    [ObservableProperty]
+    private bool _isBusy;
+    
+    [ObservableProperty]
+    private AlbumViewModel? _selectedAlbum;
+    
+    public ObservableCollection<AlbumViewModel> SearchResults  { get; } = new();
+    
+    [RelayCommand]
+    private void BuyMusic()
+    {
+        // Close and send album
+    }
+}
+````
+
+Más adelante añadiremos la lógica de búsqueda y de comprar.
+
+
+## Crear la vista
+
+A continuación podemos crear la vista y aprovechar que hemos creado algunas propiedades en nuestro ViewModel para enlazarla directamente.
+
+Esta vista tendrá un cuadro de texto para buscar, una barra de progreso indeterminado, un botón para comprar y la lista de albumes encontrados, así que usaremos un ``DockPanel`` para que la lista se expanda y el resto de componentes ocupen lo mínimo.
+
+Hay que recordar que en este caso se trata de una ventana, no de un ``UserControl`` así que creamos una nueva ventana: ``Add > Avalonia Window``.
+
+````xml title=MusicStoreWindow.axaml
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:Avalonia.MusicStore.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="650" d:DesignHeight="500"
+        x:Class="Avalonia.MusicStore.Views.MusicStoreWindow"
+        Title="MusicStoreWindow"
+        TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaToDecorationsHint="True"
+        Width="800" Height="500"
+        WindowStartupLocation="CenterOwner"
+        x:DataType="vm:MusicStoreViewModel">
+    <Panel>
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    TintColor="Black"
+                    TintOpacity="1"
+                    MaterialOpacity="0.5" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+
+        <DockPanel Margin="40">
+            <StackPanel DockPanel.Dock="Top">
+                <TextBox Watermark="Search for Albums...." Text="{Binding SearchText}" />
+                <ProgressBar Margin="0 5 0 0" IsIndeterminate="True" IsVisible="{Binding IsBusy}" />
+            </StackPanel>
+            <Button Content="Buy Album" 
+                    DockPanel.Dock="Bottom" 
+                    HorizontalAlignment="Center"
+                    Command="{Binding BuyMusicCommand}"/>
+        
+            <ListBox ItemsSource="{Binding SearchResults}" SelectedItem="{Binding SelectedAlbum}"
+                     Background="Transparent" Margin="0 20" CornerRadius="10">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel HorizontalAlignment="Center" />
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+            </ListBox>
+        </DockPanel>
+    </Panel>
+</Window>
+````
+
+Añadiremos todos los componentes y le configuramos los mismos estilos que a la ventana principal.
+
+Ya tenemos todo lo necesario, ahora solo falta abrir nuestra ventana al pulsar el botón.

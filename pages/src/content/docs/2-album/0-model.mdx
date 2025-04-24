@@ -1,0 +1,87 @@
+---
+title: Album MVVM
+---
+
+Para mostrar los albumes como en la aplicación de ejemplo, debemos crear su modelo, su vista y su VistaModelo.
+
+## Modelo
+
+El modelo representa los datos importantes del album para nuestra aplicación. En este caso serán el artista, el título del album y su carátula. Para representar esta información creamos una nueva clase en el directorio ``Models``, ``Models/Album.cs``.
+
+````cs title=Album.cs
+namespace Avalonia.MusicStore.Models;
+
+public class Album
+{
+    public string Artist { get; set; }
+    public string Title { get; set; }
+    public string CoverUrl { get; set; }
+
+    public Album(string artist, string title, string coverUrl)
+    {
+        Artist = artist;
+        Title = title;
+        CoverUrl = coverUrl;
+    }
+}
+````
+
+## VistaModelo
+
+Creamores una nueva clase ``ViewModels/AlbumViewModel.cs`` que es la encargada de conectar nuestro modelo con la vista y hará posible que los datos de cada album se vean correctamente, además de que se actualicen si hubiese algún cambio, por ejemplo cuando implementemos la carga de las portadas asíncronas.
+
+````cs title=AlbumViewModelo.cs
+namespace Avalonia.MusicStore.ViewModels;
+
+public partial class AlbumViewModel : ViewModelBase
+{
+    private Album _album { get; }
+
+    public AlbumViewModel(Album album)
+    {
+        _album = album;
+    }
+
+    public string Artist => _album.Artist;
+
+    public string Title => _album.Title;
+    
+    [ObservableProperty]
+    private Bitmap? _cover;
+}
+````
+
+Observa que en este caso, la portada no es un ``String`` como en el modelo, aquí ya usamos un ``Bitmap`` opcional, ya que más adelante implementaremos la carga asíncrona, e inicialmente será nulo.
+
+## Vista
+
+Crearemos una nueva vista en el directorio ``Views`` (``Add > Avolonia User Control``) y la conectaremos con los datos de la clase anterior.
+
+````xml title=AlbumView.axaml {9,13,14,19,20}
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="200"
+             Width="200"
+             x:Class="Avalonia.MusicStore.Views.AlbumView"
+             xmlns:vm="using:Avalonia.MusicStore.ViewModels"
+             x:DataType="vm:AlbumViewModel" >
+    <StackPanel Spacing="5" Width="200">
+        <Border CornerRadius="10" ClipToBounds="True">
+            <Panel Background="#7FFF22DD">
+                <Image Width="200" Stretch="Uniform" Source="{Binding Cover}" />
+                <Panel Height="200" IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNull}}">
+                    <PathIcon Height="75" Width="75" Data="{StaticResource MusicRegular}" />
+                </Panel>
+            </Panel>
+        </Border>
+        <TextBlock HorizontalAlignment="Center" Text="{Binding Title}"/>
+        <TextBlock HorizontalAlignment="Center" Text="{Binding Artist}"/>
+    </StackPanel>
+</UserControl>
+````
+
+Observa como se conecta con su VistaModelo ``x:DataType="vm:AlbumViewModel"``, esto permite que hagamos uso del enlazado de propiedades, como por ejemplo ``{Binding Cover}``.
+
+Además, no solo se utilizan binding para mostrar información, también se puede usar como entrada para otras funciones, como conversores, que transformen esa en información, por ejemplo, en este caso se utiliza el conversor de Avalonia ``ObjectConverters.IsNull`` que comprueba si un dato es nulo o no, para mostrar u ocultar la carátula por defecto.

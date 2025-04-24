@@ -1,0 +1,144 @@
+---
+title: Estilos de la ventana
+description: Cambiar los estilos de la ventana principal
+---
+
+Vamos a utilizar los mismos estilos que en el tutorial, con modo oscuro y fondo semitransparente con desenfoque cristalizado.
+
+Para ello modificaremos el xml de nuestra ventana principal, podemos jugar con los valores del desenfoque y la opacidad para darle el aspecto que más nos guste.
+
+````xml {12-14,22-30}
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Avalonia.MusicStore.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:Avalonia.MusicStore.Views"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Avalonia.MusicStore.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="Avalonia.MusicStore"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent"
+        ExtendClientAreaToDecorationsHint="True">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+    <Panel>
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    TintColor="Black"
+                    TintOpacity="1"
+                    MaterialOpacity="0.5" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+
+	<Panel Margin="40">
+	</Panel>
+    </Panel>
+</Window>
+````
+
+Al añadir el diseño acrílico al panel es necesario crear un panel interno que será el que contenga todos nuestros componentes, además se le añade un margen para separarlos de los bordesde la ventana.
+
+## Paneles
+
+Los paneles son el componente utilizado en Avalonia para contener y organizar al resto de componentes, u otros paneles. Existentes varios tipos de paneles que se pueden combinar para lograr el aspecto y comportamientos deseados de nuestra interfaz. Con los panels ya existentes se puede cubrir casi cualquier casuística.
+
+En la [documentación oficial](https://docs.avaloniaui.net/docs/basics/user-interface/building-layouts/panels-overview) encontrarás toda la información sobre los distintos paneles que existen.
+
+A continuación se describen brevemente los más importantes y los que más se utilizan para crear interfaces.
+
+### StackPanel
+
+Es quizás el más simple, permite organizar los componentes en filas o columnas, dependiendo del valor que indiquemos en su propiedad ``Orientation``.
+
+````xml
+<StackPanel Orientation="Horizontal">
+<StackPanel Orientation="Vertical">
+````
+
+### WrapPanel
+
+Este panel muestra un elemento a continuación de izquierda a derecha creando saltos de línea cuando llega al final. Los elementos se organizan como si se tratase de un texto.
+
+### Grid
+
+Organiza los elementos en una cuadrícula, o grilla. Es necesario definir las columnas o las filas, o bien ambas. Para ello se pueden utilizar las propiedades ``ColumnDefinitions`` y ``RowDefinitions``. Estas propiedades también se encuentran disponibles como propiedades adjuntas, pudiendose definir de forma interna como si fuese un hijo del ``Grid``.
+
+````xml
+<Grid HorizontalAlignment="Left" 
+      VerticalAlignment="Top" 
+      ColumnDefinitions="Auto,100,*"
+      RowDefinitions="Auto,100,*">
+    <TextBlock Grid.Row="0" Grid.Column="0" Text="(0,0)" />
+    <TextBlock Grid.Row="0" Grid.Column="0" Text="(0,1)" />
+    <TextBlock Grid.Row="0" Grid.Column="0" Text="(0,2)" />
+    <TextBlock Grid.Row="0" Grid.Column="0" Text="(1,0)" />
+    <TextBlock Grid.Row="0" Grid.Column="0" Text="(1,1)" />
+    <TextBlock Grid.Row="0" Grid.Column="0" Text="(1,2)" />
+</Grid>
+
+<Grid HorizontalAlignment="Left" 
+      VerticalAlignment="Top">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto"></ColumnDefinition>
+        <ColumnDefinition Width="100"></ColumnDefinition>
+        <ColumnDefinition Width="*"></ColumnDefinition>
+    </Grid.ColumnDefinitions>
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"></RowDefinition>
+        <RowDefinition Height="100"></RowDefinition>
+        <RowDefinition Height="*"></RowDefinition>
+    </Grid.RowDefinitions>
+    <TextBlock Grid.Row="0" Grid.Column="0" Text="(0,0)" />
+    <TextBlock Grid.Row="0" Grid.Column="0" Text="(0,1)" />
+    <TextBlock Grid.Row="0" Grid.Column="0" Text="(0,2)" />
+    <TextBlock Grid.Row="0" Grid.Column="0" Text="(1,0)" />
+    <TextBlock Grid.Row="0" Grid.Column="0" Text="(1,1)" />
+    <TextBlock Grid.Row="0" Grid.Column="0" Text="(1,2)" />
+</Grid>
+````
+
+El tamaño de las filas y columnas se puede especificar de 3 formas.
+* **Auto**: La celda ocupará tanto como el componente que cotenga.
+* **Número**: Con un numero fijo, la celda tendrá ese ancho o alto.
+* **Fracción**: Como una fracción, donde el asterisco ``*`` representa una unidad, así una fila con alto ``2*`` será el doble de alta que una fila con alto ``*``. Las fracciones se reparten el espacio disponible después de calcular los valores auto y numéricos.
+
+:::tip
+Los elementos dentro ``Grid`` deben indicar su posición con las propiedades adjuntas ``Grid.Row`` y ``Grid.column``, así que no es necesario que en el xml vayan en el orden que se muestran en la interfaz.
+:::
+
+### DockPanel
+
+Este panel se utiliza siempre con un propósito concreto, hacer que un componente se expanda para ocupar todo el espacio disponible.
+
+En el ``DockPanel`` el último componente hijo ocupará todo el espacio disponible que no haya sido ocupado por el resto de hijos.
+
+Para posicionar los componentes dentro de un DockPanel se debe utilizar la propiedad adjuntar ``DockPanel.Dock`` que puede tomar los valores ``Top|Bottom|Left|Right``. Así, los hijos se irán colocando la posición especificada por oden, ocupando el espacio mínimo y el último hijo se colocará en el centro expandiendose.
+
+````xml
+<DockPanel LastChildFill="True">
+  <Border Height="25" Background="SkyBlue" BorderBrush="Black" BorderThickness="1" DockPanel.Dock="Top">
+    <TextBlock Foreground="Black">Dock = "Top"</TextBlock>
+  </Border>
+  <Border Height="25" Background="SkyBlue" BorderBrush="Black" BorderThickness="1" DockPanel.Dock="Top">
+    <TextBlock Foreground="Black">Dock = "Top"</TextBlock>
+  </Border>
+  <Border Height="25" Background="LemonChiffon" BorderBrush="Black" BorderThickness="1" DockPanel.Dock="Bottom">
+    <TextBlock Foreground="Black">Dock = "Bottom"</TextBlock>
+  </Border>
+  <Border Width="200" Background="PaleGreen" BorderBrush="Black" BorderThickness="1" DockPanel.Dock="Left">
+    <TextBlock Foreground="Black">Dock = "Left"</TextBlock>
+  </Border>
+  <Border Background="White" BorderBrush="Black" BorderThickness="1">
+    <TextBlock Foreground="Black">This content will "Fill" the remaining space</TextBlock>
+  </Border>
+</DockPanel>
+````
