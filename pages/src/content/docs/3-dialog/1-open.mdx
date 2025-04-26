@@ -81,22 +81,17 @@ Ahora podemos añadir los siguientes cambios a nuestro ViewModel:
         ShowDialog = new Interaction<MusicStoreViewModel, AlbumViewModel?>();
     }
 
-    [RelayCommand]
-    private async Task BuyMusicAsync()
-    {
-        var store = new MusicStoreViewModel();
-
-        var result = await ShowDialog.HandleAsync(store);
-        if (result != null)
-        {
-            Albums.Add(result);
-        }
-    }
-    
     /// <summary>
     /// Gets an instance of our own Interaction class
     /// </summary>
     public Interaction<MusicStoreViewModel, AlbumViewModel?> ShowDialog { get; }
+
+    [RelayCommand]
+    private void BuyMusic()
+    {
+        var store = new MusicStoreViewModel();
+        ShowDialog.HandleAsync(store);
+    }
 ````
 
 Como vemos, en ningún momento se referencia a las vistas o ventanas en el ViewModel, simplemente creamos un objeto de interacción que creará un ``MusicStoreViewModel`` y recibirá un ``AlbumViewModel`` de forma opcional, puede ser nulo cuando no se elige ningún album.

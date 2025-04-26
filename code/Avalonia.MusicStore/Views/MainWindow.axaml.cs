@@ -34,9 +34,6 @@ public partial class MainWindow : Window
     
     private async Task<AlbumViewModel?> InteractionHandler(MusicStoreViewModel vm)
     {
-        // Get a reference to our TopLevel (in our case the parent Window)
-        //var topLevel = TopLevel.GetTopLevel(this);
-
         var dialog = new MusicStoreWindow();
         dialog.DataContext = vm;
 

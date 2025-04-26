@@ -1,0 +1,74 @@
+---
+title: Persistir los álbumes
+---
+
+Ahora que ya podemos añadir los álbumes que buscamos a nuestra colección es necesario que persistamos estos datos para que se mantengan entre ejecuciones.
+
+## Guardar los álbumes
+
+Al igual que hicimos con la integración de iTunes, vamos a crear un servicio que gestiona la escritura y lectura de los datos persistidos, así abstraemos al resto de la aplicación de como está implementado. Crearemos un nuevo servicio ``Services/CacheService.cs``.
+
+````cs title=CacheService.cs
+using Avalonia.MusicStore.Models;
+using System.IO;
+using System.Text.Json;
+using System.Threading.Tasks;
+
+namespace Avalonia.MusicStore.Services;
+
+public class CacheService
+{
+    private const string DataExtension = ".json";
+
+    private static string CachePath(Album album) => $"./cache/{album.Artist}_{album.Title}";
+
+    private static CacheService? _instance;
+
+    public static CacheService Instance => _instance ??= new CacheService();
+    
+    public async Task SaveAsync(Album album)
+    {
+        if (!Directory.Exists("./cache"))
+        {
+            Directory.CreateDirectory("./cache");
+        }
+
+        await using var fs = File.OpenWrite(CachePath(album) + DataExtension);
+        await SaveToStreamAsync(album, fs);
+    }
+
+    private async Task SaveToStreamAsync(Album data, Stream stream)
+    {
+        await JsonSerializer.SerializeAsync(stream, data).ConfigureAwait(false);
+    }
+}
+````
+
+De momento este servicio tiene un método público que recibe un álbum (su modelo) y guarda su información en una fichero json. Ahora podemos invocar este servicio desde nuestro ViewModel cuando se añada un nuevo álbum a la colección.
+
+Ahora debemos guardar el álbum en la cache cuando los añadimos a las colección.
+
+````cs title=MainWindowViewModel.cs ins={12}
+    private readonly CacheService _cacheService = CacheService.Instance;
+
+    [RelayCommand]
+    private async Task BuyMusic()
+    {
+        var store = new MusicStoreViewModel();
+
+        var result = await ShowDialog.HandleAsync(store);
+        if (result != null)
+        {
+            Albums.Add(result);
+            await _cacheService.SaveAsync(result.Album);
+        }
+    }
+````
+
+Con este cambio, cada vez que añadimos un álbum a la colección se crea un fichero json con los datos del álbum en el directorio caché.
+
+## Cargar los álbumes
+
+Ahora que estamos persistiendo la información, podemos leer todos los ficheros json de la cache cuando iniciamos la aplicación para cargar la lista de álbumes de nuestra colección.
+
+

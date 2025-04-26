@@ -49,6 +49,13 @@ export default defineConfig({
           },
           autogenerate: { directory: "3-dialog" },
         },
+        {
+          label: "Comprar álbum",
+          translations: {
+            en: "Buy album",
+          },
+          autogenerate: { directory: "4-buy" },
+        },
       ],
       defaultLocale: "root",
       locales: {

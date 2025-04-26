@@ -35,17 +35,17 @@ namespace Avalonia.MusicStore.ViewModels;
 
 public partial class AlbumViewModel : ViewModelBase
 {
-    private Album _album { get; }
+    public Album Album { get; }
 
     public AlbumViewModel(Album album)
     {
-        _album = album;
+        Album = album;
     }
 
-    public string Artist => _album.Artist;
+    public string Artist => Album.Artist;
 
-    public string Title => _album.Title;
-    
+    public string Title => Album.Title;
+
     [ObservableProperty]
     private Bitmap? _cover;
 }

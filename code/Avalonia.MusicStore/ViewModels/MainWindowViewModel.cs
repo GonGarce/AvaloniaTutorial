@@ -1,10 +1,7 @@
 ﻿using System.Collections.ObjectModel;
-using System.Linq;
 using System.Threading.Tasks;
-using Avalonia.MusicStore.Models;
 using CommunityToolkit.Mvvm.Input;
-using System.Reactive.Concurrency;
-using Avalonia.Threading;
+using Avalonia.MusicStore.Services;
 
 namespace Avalonia.MusicStore.ViewModels;
 
@@ -13,11 +10,12 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel()
     {
         ShowDialog = new Interaction<MusicStoreViewModel, AlbumViewModel?>();
-        Dispatcher.UIThread.Post(LoadAlbums);
     }
+    
+    private readonly CacheService _cacheService = CacheService.Instance;
 
     [RelayCommand]
-    private async Task BuyMusicAsync()
+    private async Task BuyMusic()
     {
         var store = new MusicStoreViewModel();
 
@@ -25,7 +23,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (result != null)
         {
             Albums.Add(result);
-            await result.SaveToDiskAsync();
+            await _cacheService.SaveAsync(result.Album);
         }
     }
     
@@ -34,20 +32,5 @@ public partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     public Interaction<MusicStoreViewModel, AlbumViewModel?> ShowDialog { get; }
     
-    public ObservableCollection<AlbumViewModel> Albums { get; } = new();
-    
-    private async void LoadAlbums()
-    {
-        var albums = (await Album.LoadCachedAsync()).Select(x => new AlbumViewModel(x));
-
-        foreach (var album in albums)
-        {
-            Albums.Add(album);
-        }
-
-        foreach (var album in Albums.ToList())
-        {
-            await album.LoadCover();
-        }
-    }
+    public ObservableCollection<AlbumViewModel> Albums { get; set; } = [];
 }

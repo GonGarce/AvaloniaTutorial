@@ -6,7 +6,11 @@
              Width="200"
              x:Class="Avalonia.MusicStore.Views.AlbumView"
              xmlns:vm="using:Avalonia.MusicStore.ViewModels"
-             x:DataType="vm:AlbumViewModel" >
+             x:DataType="vm:AlbumViewModel">
+    <Design.DataContext>
+        <vm:AlbumViewModel Title="Title test" Artist="Artist test" />
+    </Design.DataContext>
+
     <StackPanel Spacing="5" Width="200">
         <Border CornerRadius="10" ClipToBounds="True">
             <Panel Background="#7FFF22DD">
@@ -16,7 +20,7 @@
                 </Panel>
             </Panel>
         </Border>
-        <TextBlock HorizontalAlignment="Center" Text="{Binding Title}"/>
-        <TextBlock HorizontalAlignment="Center" Text="{Binding Artist}"/>
+        <TextBlock HorizontalAlignment="Center" Text="{Binding Title}" />
+        <TextBlock HorizontalAlignment="Center" Text="{Binding Artist}" />
     </StackPanel>
 </UserControl>
