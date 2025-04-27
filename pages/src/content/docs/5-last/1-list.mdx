@@ -1,0 +1,50 @@
+---
+title: Acabar estilo
+---
+
+Durante el desarollo hemos pasado por alto algunos detalle que vamos a arreglar ahora para dejar la aplicación totalmente funcional.
+
+## Scroll en la colección
+
+Para la colección utilizamos un ``ItemsControl`` en lugar de un ``ListBox`` porque no queríamos funcionalidades relacionadas con la selección de elementos. Otra de las diferencias entre estos dos componentes es que el ``ItemsControl`` no incorpora scroll por defecto, así que debemos añadirlo explícitamente, o de lo contrario cuando tengamos más álbumes estos no se verán.
+
+````cs title=MainWindow.axaml
+<Panel>
+    <Button Margin="40" HorizontalAlignment="Right" VerticalAlignment="Top"
+            Command="{Binding BuyMusicCommand}">
+        <PathIcon Data="{StaticResource StoreMicrosoftRegular}" />
+    </Button>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" Margin="0, 60, 0, 40">
+        <ItemsControl Margin="40, 10" ItemsSource="{Binding Albums}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel HorizontalAlignment="Center" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.Styles>
+                <Style Selector="views|AlbumView">
+                    <Setter Property="Margin" Value="10,10,10,10"></Setter>
+                </Style>
+            </ItemsControl.Styles>
+        </ItemsControl>
+    </ScrollViewer>
+</Panel>
+````
+
+## Tamaño de carátula
+
+Cuando descargamos las carátulas las redimensionamos a un ancho de 400 píxeles y en la vista las mostramos con un ancho de 200 píxeles. Hay esa diferencia de tamaño para que se vean bien en dispositivos de alta resolución. De todas formas, si alguna carátula fuese más ancha que alta, no se vería cuadrada, quedando más pequeña que el resto.
+
+![cover wrong](../../../assets/images/cover_wrong.jpg)
+
+Esto es fácil de solucionar, haciendo que la imagen se expanda para cubrir todo el componente Bitmap.
+
+````cs title=AlbumView.axaml "UniformToFill" "Height=\"200\""
+<Image Width="200" Height="200" Stretch="UniformToFill" Source="{Binding Cover}" />
+````
+
+Ahora queda perfecto.
+
+![cover ok](../../../assets/images/cover_ok.jpg)
+
+## 

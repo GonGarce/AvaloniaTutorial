@@ -36,7 +36,8 @@ public partial class MusicStoreViewModel: ViewModelBase
     [ObservableProperty]
     private AlbumViewModel? _selectedAlbum;
     
-    public ObservableCollection<AlbumViewModel> SearchResults  { get; } = new();
+    [ObservableProperty]
+    private AlbumViewModel[] _searchResults = [];
     
     [RelayCommand]
     private void BuyMusic()

@@ -56,6 +56,13 @@ export default defineConfig({
           },
           autogenerate: { directory: "4-buy" },
         },
+        {
+          label: "Últimos retoques",
+          translations: {
+            en: "Last details",
+          },
+          autogenerate: { directory: "5-last" },
+        },
       ],
       defaultLocale: "root",
       locales: {

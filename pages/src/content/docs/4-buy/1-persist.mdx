@@ -48,9 +48,16 @@ De momento este servicio tiene un método público que recibe un álbum (su mode
 
 Ahora debemos guardar el álbum en la cache cuando los añadimos a las colección.
 
-````cs title=MainWindowViewModel.cs ins={12}
+````cs title=AlbumViewModel.cs
     private readonly CacheService _cacheService = CacheService.Instance;
 
+    public async Task SaveToDiskAsync()
+    {
+        await _cacheService.SaveAsync(Album);
+    }
+````
+
+````cs title=MainWindowViewModel.cs ins={10}
     [RelayCommand]
     private async Task BuyMusic()
     {
@@ -60,7 +67,7 @@ Ahora debemos guardar el álbum en la cache cuando los añadimos a las colecció
         if (result != null)
         {
             Albums.Add(result);
-            await _cacheService.SaveAsync(result.Album);
+            await result.SaveToDiskAsync();
         }
     }
 ````
@@ -71,4 +78,91 @@ Con este cambio, cada vez que añadimos un álbum a la colección se crea un fic
 
 Ahora que estamos persistiendo la información, podemos leer todos los ficheros json de la cache cuando iniciamos la aplicación para cargar la lista de álbumes de nuestra colección.
 
+Lo primero será añadir a nuestro ``CacheService`` lo necesario para leer los álbumes almacenados en el directorio caché. Además aprovechamos para refactorizar algunas partes que se repiten al añadir esta nueva funcionalidad.
 
+````cs title=CacheService.cs del={13-16} ins={17,22-37,43-52}
+public class CacheService
+{
+    private const string DataExtension = ".json";
+
+    private static string CachePath(Album album) => $"./cache/{album.Artist}_{album.Title}";
+
+    private static CacheService? _instance;
+
+    public static CacheService Instance => _instance ??= new CacheService();
+
+    public async Task SaveAsync(Album album)
+    {
+        if (!Directory.Exists("./cache"))
+        {
+            Directory.CreateDirectory("./cache");
+        }
+        EnsureDirectoryExists();
+
+        await using var fs = File.OpenWrite(CachePath(album) + DataExtension);
+        await SaveToStreamAsync(album, fs);
+    }
+
+    public async Task<IEnumerable<Album>> LoadCachedAsync()
+    {
+        EnsureDirectoryExists();
+
+        var results = new List<Album>();
+        foreach (var file in Directory.EnumerateFiles("./cache"))
+        {
+            if (!string.Equals(new DirectoryInfo(file).Extension, ".json")) continue;
+
+            await using var fs = File.OpenRead(file);
+            results.Add(await LoadFromStream(fs).ConfigureAwait(false));
+        }
+
+        return results;
+    }
+
+    private async Task SaveToStreamAsync(Album data, Stream stream)
+    {
+        await JsonSerializer.SerializeAsync(stream, data).ConfigureAwait(false);
+    }
+
+    private void EnsureDirectoryExists()
+    {
+        if (!Directory.Exists("./cache")) Directory.CreateDirectory("./cache");
+    }
+
+    private async Task<Album> LoadFromStream(Stream stream)
+    {
+        return (await JsonSerializer.DeserializeAsync<Album>(stream).ConfigureAwait(false))!;
+    }
+}
+````
+
+Ahora llamaremos a este servicio al iniciar la aplicación, para que lea todos los ficheros json en el directorio caché y mostrar los álbumes que hayamos guardado.
+
+````cs title=MainWindowViewModel.cs ins={6,11-18}
+//...
+
+    public MainWindowViewModel()
+    {
+        ShowDialog = new Interaction<MusicStoreViewModel, AlbumViewModel?>();
+        Dispatcher.UIThread.Post(LoadAlbums);
+    }
+
+//...
+
+    private async void LoadAlbums()
+    {
+        var albums = await _cacheService.LoadCachedAsync();
+        foreach (var album in albums)
+        {
+            Albums.Add(new AlbumViewModel(album));
+        }
+    }
+````
+
+Las operaciones asíncronas, en segundo plano, que modiquen la interfaz deben hacerlo desde el hilo principal, hilo de la UI, en este caso Avalonia nos ofrece el ``Dispatcher`` para realizar acciones en hilos concretos, como el ``UIThread``, y a través de la función ``Post`` podemos invocar una función asíncrona para ejecutarla en dicho hilo, sin esperar por su resultado.
+
+:::note
+Existen otrós métodos como ``InvokeAync`` cuando se necesario conocer el resultado de la operación invocada, o ``Invoke`` cuando queremos ejecutar dicha acción de forma síncrona, cosa que bloquearía el hilo principal hasta finalizar si usamos el ``UIThread``.
+:::
+
+Si tuviésemos una gran cantidad de álbumes la carga podría demorarse viendo la pantalla antes de finalizar. En una aplicación real se mostraría algún indicador de carga mientras esto sucede, pero por simplicidad vamos a obviarlo de momento.

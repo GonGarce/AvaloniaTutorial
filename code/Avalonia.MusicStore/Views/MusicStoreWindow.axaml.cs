@@ -33,6 +33,10 @@ public partial class MusicStoreWindow : Window
     protected override void OnUnloaded(RoutedEventArgs e)
     {
         _subscription?.Dispose();
+        if (DataContext is MusicStoreViewModel vm)
+        {
+            vm.Dispose();
+        }
         base.OnUnloaded(e);
     }
 }

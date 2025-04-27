@@ -63,7 +63,7 @@ Con nuestro servicio creado ya solo falta llamarlo desde nuestro ViewModel para 
         if (!string.IsNullOrWhiteSpace(query))
         {
             var albums = await AlbumService.SearchAsync(query);
-            SearchResults = albums.Select(album => new AlbumViewModel(album));
+            SearchResults = albums.Select(album => new AlbumViewModel(album)).toArray();
         }
 
         IsBusy = false;
@@ -72,7 +72,7 @@ Con nuestro servicio creado ya solo falta llamarlo desde nuestro ViewModel para 
 
 Es importante fijarse en el método ``OnSearchTextChanged``, observa que está definido como ``partial``, al igual que nuestra clase, esto se debe a que es un método sobreescrito de la clase padre, el community toolkit pone a nuestra disposición un conjunto de métodos para reaccionar a los cambios de las propiedades que anotemos como ``ObservableProperty``, así para cada una de ellas contamos con métodos análogos. Si hacemos ``Ctrl+Click`` en el método podemos ver el resto de métodos disponibles.
 
-En la búsqueda recibimos la lista de álbumes y la convertimos a una lista de ViewModels ``albums.Select(album => new AlbumViewModel(album));``, además de actualizar la propiedad ``IsBusy`` mientras está buscando.
+En la búsqueda recibimos la lista de álbumes y la convertimos en un array de ViewModels ``albums.Select(album => new AlbumViewModel(album)).toArray();``, además de actualizar la propiedad ``IsBusy`` mientras está buscando.
 
 ## Tiempo de espera entre búsquedas
 

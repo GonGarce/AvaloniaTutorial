@@ -113,7 +113,7 @@ En la ventana de la tienda siempre sobreescribimos la lista completa, es decir v
 
 ````cs
 // MusicStoreViewModel
-SearchResults = albums.Select(album => new AlbumViewModel(album));
+SearchResults = albums.Select(album => new AlbumViewModel(album)).toArray();
 
 // MainWindowViewModel
 Albums.Add(result);
