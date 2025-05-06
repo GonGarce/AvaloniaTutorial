@@ -24,7 +24,13 @@
 
             <DockPanel Margin="40">
                 <StackPanel DockPanel.Dock="Top">
-                    <TextBox Watermark="Search for Albums...." Text="{Binding SearchText}" />
+                    <TextBox Watermark="Search for Albums...." Text="{Binding SearchText}">
+                        <TextBox.InnerRightContent>
+                            <Button Classes="icon" Command="{Binding ClearSearchCommand}">
+                                <PathIcon Data="{StaticResource DismissCircle}"></PathIcon>
+                            </Button>
+                        </TextBox.InnerRightContent>
+                    </TextBox>
                     <ProgressBar Margin="0 5 0 0" IsIndeterminate="True" IsVisible="{Binding IsBusy}" />
                 </StackPanel>
                 <Button Content="Buy Album" 

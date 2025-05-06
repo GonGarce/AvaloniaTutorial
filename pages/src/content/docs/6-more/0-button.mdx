@@ -1,0 +1,195 @@
+---
+title: Botón de icono
+---
+
+Nuestra aplicación ya es funcional, cumple con todos lo establecido en el proyecto de ejemplo con ReactiveUI, y el código está bien organizado, pero podemos hacer algunas mejoras en la interfaz, que además nos servirán para practicar y aprender cosas nuevas.
+
+## Botón de comprar
+
+El botón de comprar cumple con su cometido, pero el estilo podría mejorarse, al tratarse de un botón sin texto, con solo icono, podríamos modificarlo para darle otro aspecto.
+
+Aumentaremos el tamaño del icono y eliminaremos el fondo del botón. Para aplicar estos cambios de estilo solo a este botón, o a los botones que elijamos, aplicaremos estas propiedades solo a aquellos botones que tengan una clase concreta. Para mantener todos los estilos organizados y agrupados, crearemos un nuevo archivo de estilos en el directorio ``Styles``, específico para los botones: ``Styles/Buttons.axaml``.
+
+Desde el IDE podemos hacer click derecho y seleccionar ``Add -> Avalonia Styles``.
+
+````xml title=Styles/Buttons.axaml
+    <!-- Icon Button Styles -->
+    <Style Selector="Button.icon">
+        <Setter Property="Background" Value="Transparent"></Setter>
+        <Setter Property="Width" Value="36" />
+        <Setter Property="Height" Value="36" />
+        <Style Selector="^ PathIcon">
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+        </Style>
+    </Style>
+````
+
+En primer lugar, añadimos nuestro nuevo estilo, que aplicará solo a los botones con la clase ``icon``. Ahora podemos añadir un par de botones la vista preeliminar de este xml para ver como aplican los cambios que hacemos.
+
+
+````xml title=Styles/Buttons.axaml
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <!-- Add Controls for Previewer Here -->
+            <StackPanel Orientation="Horizontal">
+                <Button Classes="icon">
+                    <PathIcon Data="{StaticResource StoreMicrosoftRegular}" />
+                </Button>
+                <Button Classes="icon" IsEnabled="False">
+                    <PathIcon Data="{StaticResource MusicRegular}" />
+                </Button>
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+````
+
+Vemos que ya no aparece el fondo del botón y que los iconos se ven más grandes. Pero no se ve ningún feedback que indique que el botón deshabilitado no se puede usar. Vamos a solucionarlo añadiendo los estilos del selector ``disabled``.
+
+````xml title=Styles/Buttons.axaml
+    <!-- Icon Button Styles -->
+    <Style Selector="Button.icon">
+        ...
+
+        <!-- Disabled -->
+        <Style Selector="^:disabled">
+            <Style Selector="^ /template/ ContentPresenter">
+                <Setter Property="Background" Value="Transparent" />
+            </Style>
+            <Style Selector="^ PathIcon">
+                <Setter Property="Foreground" Value="LightSlateGray" />
+            </Style>
+        </Style>
+````
+
+Dentro del estilo del botón, anidamos los demás estilos para mantener todo lo más organizado posible. El carácter ``^`` sirve para hacer referencia al padre en la cadena de anidamiento, ya lo usamos antes para aplicar estilos al icono dentro del botón.
+
+Por último vamos a añadir los estilos para el resto de estados del botón.
+
+````xml title=Styles/Buttons.axaml
+        <!-- Hover -->
+        <Style Selector="^:pointerover">
+            <Style Selector="^ /template/ ContentPresenter">
+                <Setter Property="Background" Value="Transparent" />
+            </Style>
+            <Style Selector="^ PathIcon">
+                <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+            </Style>
+        </Style>
+
+        <!-- Pressed -->
+        <Style Selector="^:pressed">
+            <Style Selector="^ /template/ ContentPresenter">
+                <Setter Property="Background" Value="Transparent" />
+            </Style>
+            <Style Selector="^ PathIcon">
+                <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorDark1}" />
+            </Style>
+        </Style>
+
+        <!-- Selected -->
+        <Style Selector="^:selected">
+            <Style Selector="^ /template/ ContentPresenter">
+                <Setter Property="Background" Value="Transparent" />
+            </Style>
+            <Style Selector="^ PathIcon">
+                <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+            </Style>
+        </Style>
+
+        <!-- Focused -->
+        <Style Selector="^:focused">
+            <Style Selector="^ /template/ ContentPresenter">
+                <Setter Property="Background" Value="Transparent" />
+            </Style>
+            <Style Selector="^ PathIcon">
+                <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+            </Style>
+        </Style>
+````
+
+Hacemos uso de los colores del sistema, como por ejemplo ``SystemAccentColor``, lo usamos como recurso dinámico, de forma que se actualice con el tema que esté usando el usuario. Aquí, en lugar de usar los colores del sistema podríamos utilizar colores específicos para nuestra aplicación, como un color primario que se utilice de forma consistente en la aplicación.
+
+Ahora vamos a utilizar este estilo en nuestro botón de comprar. Antes de nada hay que añadir el nuevo fichero de estilos a la aplicación, al igual que con cualquier fichero de estilos lo añadimos en ``App.axaml``.
+
+````xml title=App.axaml ins={4}
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://Avalonia.MusicStore/Styles/Icons.axaml" />
+        <StyleInclude Source="avares://Avalonia.MusicStore/Styles/Buttons.axaml" />
+    </Application.Styles>
+````
+
+Y por último, aplicar el nuevo estilo al botón es muy fácil, solo hay que aplicarle la clase ``icon``.
+
+````xml title=MainWindow.axaml ins='Classes="icon"'
+    <Button Classes="icon" Margin="40" HorizontalAlignment="Right" VerticalAlignment="Top"
+            Command="{Binding BuyMusicCommand}">
+        <PathIcon Data="{StaticResource StoreMicrosoftRegular}" />
+    </Button>
+````
+
+Si hacemos una build o ejecutamos nuestro proyecto ya podemos ver los estilos aplicados a nuestro botón.
+
+## Botón de limpiar
+
+Lo bueno de crear los estilos de esta manera es que están disponibles en toda la aplicación y usarlos es muy sencillo. Por ejemplo, ahora vamos a crear un botón para limpiar el campo de búsqueda, así será más fácil empezar una nueva búsqueda.
+
+Podemos usar el icono que prefiramos y añadirlo al archivo de estilo donde almacenamos el resto de iconos, por ejemplo podemos hacer uso del botón ``dismiss_circle_regular``:
+
+````xml title=Icons.axaml ins={6}
+    <Style>
+        <Style.Resources>
+            <StreamGeometry x:Key="StoreMicrosoftRegular">M11.5 9.5V13H8V9.5H11.5Z M11.5 17.5V14H8V17.5H11.5Z M16 9.5V13H12.5V9.5H16Z M16 17.5V14H12.5V17.5H16Z M8 6V3.75C8 2.7835 8.7835 2 9.75 2H14.25C15.2165 2 16 2.7835 16 3.75V6H21.25C21.6642 6 22 6.33579 22 6.75V18.25C22 19.7688 20.7688 21 19.25 21H4.75C3.23122 21 2 19.7688 2 18.25V6.75C2 6.33579 2.33579 6 2.75 6H8ZM9.5 3.75V6H14.5V3.75C14.5 3.61193 14.3881 3.5 14.25 3.5H9.75C9.61193 3.5 9.5 3.61193 9.5 3.75ZM3.5 18.25C3.5 18.9404 4.05964 19.5 4.75 19.5H19.25C19.9404 19.5 20.5 18.9404 20.5 18.25V7.5H3.5V18.25Z</StreamGeometry>
+            <StreamGeometry x:Key="MusicRegular">M11.5,2.75 C11.5,2.22634895 12.0230228,1.86388952 12.5133347,2.04775015 L18.8913911,4.43943933 C20.1598961,4.91511241 21.0002742,6.1277638 21.0002742,7.48252202 L21.0002742,10.7513533 C21.0002742,11.2750044 20.4772513,11.6374638 19.9869395,11.4536032 L13,8.83332147 L13,17.5 C13,17.5545945 12.9941667,17.6078265 12.9830895,17.6591069 C12.9940859,17.7709636 13,17.884807 13,18 C13,20.2596863 10.7242052,22 8,22 C5.27579485,22 3,20.2596863 3,18 C3,15.7403137 5.27579485,14 8,14 C9.3521238,14 10.5937815,14.428727 11.5015337,15.1368931 L11.5,2.75 Z M8,15.5 C6.02978478,15.5 4.5,16.6698354 4.5,18 C4.5,19.3301646 6.02978478,20.5 8,20.5 C9.97021522,20.5 11.5,19.3301646 11.5,18 C11.5,16.6698354 9.97021522,15.5 8,15.5 Z M13,3.83223733 L13,7.23159672 L19.5002742,9.669116 L19.5002742,7.48252202 C19.5002742,6.75303682 19.0477629,6.10007069 18.3647217,5.84393903 L13,3.83223733 Z</StreamGeometry>
+            <StreamGeometry x:Key="RemoveRegular">M3.7547787,12.4995322 L20.2466903,12.4995322 C20.6609039,12.4995322 20.9966903,12.1637458 20.9966903,11.7495322 C20.9966903,11.3353187 20.6609039,10.9995322 20.2466903,10.9995322 L3.7547787,10.9995322 C3.34056514,10.9995322 3.0047787,11.3353187 3.0047787,11.7495322 C3.0047787,12.1637458 3.34056514,12.4995322 3.7547787,12.4995322 Z</StreamGeometry>
+            <StreamGeometry x:Key="DismissCircle">M24,4 C35.045695,4 44,12.954305 44,24 C44,35.045695 35.045695,44 24,44 C12.954305,44 4,35.045695 4,24 C4,12.954305 12.954305,4 24,4 Z M24,6.5 C14.3350169,6.5 6.5,14.3350169 6.5,24 C6.5,33.6649831 14.3350169,41.5 24,41.5 C33.6649831,41.5 41.5,33.6649831 41.5,24 C41.5,14.3350169 33.6649831,6.5 24,6.5 Z M17.7823881,16.0249942 L17.8838835,16.1161165 L24,22.233 L30.1161165,16.1161165 C30.5717282,15.6605048 31.2915486,15.6301307 31.7823881,16.0249942 L31.8838835,16.1161165 C32.3394952,16.5717282 32.3698693,17.2915486 31.9750058,17.7823881 L31.8838835,17.8838835 L25.767,24 L31.8838835,30.1161165 C32.3394952,30.5717282 32.3698693,31.2915486 31.9750058,31.7823881 L31.8838835,31.8838835 C31.4282718,32.3394952 30.7084514,32.3698693 30.2176119,31.9750058 L30.1161165,31.8838835 L24,25.767 L17.8838835,31.8838835 C17.4282718,32.3394952 16.7084514,32.3698693 16.2176119,31.9750058 L16.1161165,31.8838835 C15.6605048,31.4282718 15.6301307,30.7084514 16.0249942,30.2176119 L16.1161165,30.1161165 L22.233,24 L16.1161165,17.8838835 C15.6605048,17.4282718 15.6301307,16.7084514 16.0249942,16.2176119 L16.1161165,16.1161165 C16.5717282,15.6605048 17.2915486,15.6301307 17.7823881,16.0249942 Z</StreamGeometry>
+        </Style.Resources>
+    </Style>
+````
+
+Este botón irá dentro del campo de búsqueda, para esto podemos hacer uso de una propiedad adjunta del componente ``TextBox`` que permite añadir componentes dentro del mismo. Las propiedades ``InnerLeftContent`` y ``InnerRightContent`` nos permiten incrustrar cualquier componente dentro del propio campo de texto, como por ejemplo, un botón.
+
+````xml title=MusicStoreWindow.axaml del={1} ins={2-8}
+    <TextBox Watermark="Search for Albums...." Text="{Binding SearchText}" />
+    <TextBox Watermark="Search for Albums...." Text="{Binding SearchText}">
+        <TextBox.InnerRightContent>
+            <Button Classes="icon">
+                <PathIcon Data="{StaticResource DismissCircle}"></PathIcon>
+            </Button>
+        </TextBox.InnerRightContent>
+    </TextBox>
+````
+
+Podemos usar directamente nuestra clase ``icon`` para que el botón se integre mejor en el campo de texto.
+
+Vamos a asociar el botón con un comando para limpiar el texto y hacer que solo esté activo cuando haya algo escrito, de forma similar a como desactivamos el botón de comprar cuando no hay ningún álbum seleccionado.
+
+````cs title=MusicStoreViewModel.cs ins={2,4-13}
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ClearSearchCommand))]
+    private string? _searchText;
+
+    private bool CanClear => !string.IsNullOrWhiteSpace(SearchText);
+    
+    [RelayCommand(CanExecute = nameof(CanClear))]
+    private void ClearSearch()
+    {
+        SearchText = string.Empty;
+        SearchResults = [];
+        SelectedAlbum = null;
+    }
+````
+
+````xml title=MusicStoreWindow.axaml ins='Command="{Binding ClearSearchCommand}"'
+    <TextBox Watermark="Search for Albums...." Text="{Binding SearchText}">
+        <TextBox.InnerRightContent>
+            <Button Classes="icon" Command="{Binding ClearSearchCommand}">
+                <PathIcon Data="{StaticResource DismissCircle}"></PathIcon>
+            </Button>
+        </TextBox.InnerRightContent>
+    </TextBox>
+````
+
+Nuestro nuevo botón está listo y podemos ver los estilos en acción, además el estilo para el estado deshabilitado se aplica directamente cuando no hay texto gracias al binding del comando.
+

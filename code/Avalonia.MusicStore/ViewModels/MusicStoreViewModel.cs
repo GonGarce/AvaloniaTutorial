@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -29,6 +28,7 @@ public partial class MusicStoreViewModel : ViewModelBase, IDisposable
     private CancellationTokenSource? _cancellationTokenSource;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ClearSearchCommand))]
     private string? _searchText;
 
     [ObservableProperty]
@@ -50,6 +50,16 @@ public partial class MusicStoreViewModel : ViewModelBase, IDisposable
         {
             BuySubject.OnNext(SelectedAlbum);
         }
+    }
+    
+    private bool CanClear => !string.IsNullOrWhiteSpace(SearchText);
+    
+    [RelayCommand(CanExecute = nameof(CanClear))]
+    private void ClearSearch()
+    {
+        SearchText = string.Empty;
+        SearchResults = [];
+        SelectedAlbum = null;
     }
 
     partial void OnSearchTextChanged(string? value)

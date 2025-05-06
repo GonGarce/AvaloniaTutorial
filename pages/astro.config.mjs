@@ -63,6 +63,13 @@ export default defineConfig({
           },
           autogenerate: { directory: "5-last" },
         },
+        {
+          label: "Un paso más allá",
+          translations: {
+            en: "A step further",
+          },
+          autogenerate: { directory: "6-more" },
+        },
       ],
       defaultLocale: "root",
       locales: {
