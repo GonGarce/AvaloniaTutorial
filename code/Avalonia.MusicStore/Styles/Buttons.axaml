@@ -1,7 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Design.PreviewWith>
-        <Border Padding="20">
+        <Border Padding="20" Background="Indigo">
             <!-- Add Controls for Previewer Here -->
             <StackPanel Orientation="Horizontal">
                 <Button Classes="icon">
@@ -10,6 +10,15 @@
                 <Button Classes="icon" IsEnabled="False">
                     <PathIcon Data="{StaticResource MusicRegular}" />
                 </Button>
+                <Button Classes="icon danger">
+                    <PathIcon Data="{StaticResource DeleteRegular}" />
+                </Button>
+                <Button Classes="icon danger rounded">
+                    <PathIcon Data="{StaticResource DeleteRegular}" />
+                </Button>
+                <Button Classes="icon danger rounded" IsEnabled="False">
+                    <PathIcon Data="{StaticResource DeleteRegular}" />
+                </Button>
             </StackPanel>
         </Border>
     </Design.PreviewWith>
@@ -17,8 +26,9 @@
     <!-- Icon Button Styles -->
     <Style Selector="Button.icon">
         <Setter Property="Background" Value="Transparent"></Setter>
-        <Setter Property="Width" Value="36" />
-        <Setter Property="Height" Value="36" />
+        <Setter Property="Width" Value="48" />
+        <Setter Property="Height" Value="48" />
+        <Setter Property="Cursor" Value="Hand"></Setter>
         <Style Selector="^ PathIcon">
             <Setter Property="Width" Value="24" />
             <Setter Property="Height" Value="24" />
@@ -71,6 +81,77 @@
             </Style>
             <Style Selector="^ PathIcon">
                 <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+            </Style>
+        </Style>
+    </Style>
+
+    <Style Selector="Button.danger">
+        <!-- Hover -->
+        <Style Selector="^:pointerover">
+            <Style Selector="^ PathIcon">
+                <Setter Property="Foreground" Value="{DynamicResource Danger}" />
+            </Style>
+        </Style>
+
+        <!-- Pressed -->
+        <Style Selector="^:pressed">
+            <Style Selector="^ PathIcon">
+                <Setter Property="Foreground" Value="{DynamicResource DangerDark}" />
+            </Style>
+        </Style>
+
+        <!-- Selected -->
+        <Style Selector="^:selected">
+            <Style Selector="^ PathIcon">
+                <Setter Property="Foreground" Value="{DynamicResource Danger}" />
+            </Style>
+        </Style>
+
+        <!-- Focused -->
+        <Style Selector="^:focused">
+            <Style Selector="^ PathIcon">
+                <Setter Property="Foreground" Value="{DynamicResource Danger}" />
+            </Style>
+        </Style>
+    </Style>
+
+
+    <Style Selector="Button.rounded">
+        <Setter Property="Background" Value="#78000000"></Setter>
+        <Setter Property="CornerRadius" Value="24"></Setter>
+
+        <!-- Disabled -->
+        <Style Selector="^:disabled">
+            <Style Selector="^ /template/ ContentPresenter">
+                <Setter Property="Background" Value="#3C000000"></Setter>
+            </Style>
+        </Style>
+
+        <!-- Hover -->
+        <Style Selector="^:pointerover">
+            <Style Selector="^ /template/ ContentPresenter">
+                <Setter Property="Background" Value="#5A000000"></Setter>
+            </Style>
+        </Style>
+
+        <!-- Pressed -->
+        <Style Selector="^:pressed">
+            <Style Selector="^ /template/ ContentPresenter">
+                <Setter Property="Background" Value="#A0000000"></Setter>
+            </Style>
+        </Style>
+
+        <!-- Selected -->
+        <Style Selector="^:selected">
+            <Style Selector="^ /template/ ContentPresenter">
+                <Setter Property="Background" Value="#5A000000"></Setter>
+            </Style>
+        </Style>
+
+        <!-- Focused -->
+        <Style Selector="^:focused">
+            <Style Selector="^ /template/ ContentPresenter">
+                <Setter Property="Background" Value="#5A000000"></Setter>
             </Style>
         </Style>
     </Style>

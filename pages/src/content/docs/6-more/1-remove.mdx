@@ -1,0 +1,291 @@
+---
+title: Eliminar álbum
+---
+
+Este capítulo de ampliación tiene como objetivo mostrar un ejemplo de comunicación de eventos entre componentes. Para seguir con la misma práctica vamos a implementar una nueva funcionalidad, en concreto, la eliminación de álbumes de la biblioteca. Esta funcionalidad podría realizarse de muchas formas distintas, algunas más sencillas pero se abordará de esta manera para explicar la comunicación entre componentes.
+
+## Nuevo botón eliminar
+
+Queremos mostrar un botón de eliminar en cada álbum, para al pulsarlo quitarlo de nuestra colección. Este botón no estará disponible en la lista de álbumes al buscar, así que, o bien, añadimos el botón y lo mostramos solo en la colección o creamos una vista nueva que siempre tenga el botón disponible.
+
+Por simplificar y centrarnos en la parte de comunicación entre componentes vamos a optar por la primera opción, añadiendo un botón a la vista ya existente y mostrandolo solo en la colección, aunque quizás crear una nueva vista fuese más correcto.
+
+En primer lugar añadimos el icono a nuestro archivo de estilos de iconos. Además vamos a aprovechar para añadir un par de colores que utilizaremos, podríamos crear un nuevo fichero de estilos de colores ``Styles/Colors.axaml`` pero para ahorrar tiempo lo incluiremos en este mismo fichero.
+
+````xml title=Icons.axaml ins={2,6,7-9}
+        <Style.Resources>
+            <!-- Icons -->
+            <StreamGeometry x:Key="StoreMicrosoftRegular">M11.5 9.5V13H8V9.5H11.5Z M11.5 17.5V14H8V17.5H11.5Z M16 9.5V13H12.5V9.5H16Z M16 17.5V14H12.5V17.5H16Z M8 6V3.75C8 2.7835 8.7835 2 9.75 2H14.25C15.2165 2 16 2.7835 16 3.75V6H21.25C21.6642 6 22 6.33579 22 6.75V18.25C22 19.7688 20.7688 21 19.25 21H4.75C3.23122 21 2 19.7688 2 18.25V6.75C2 6.33579 2.33579 6 2.75 6H8ZM9.5 3.75V6H14.5V3.75C14.5 3.61193 14.3881 3.5 14.25 3.5H9.75C9.61193 3.5 9.5 3.61193 9.5 3.75ZM3.5 18.25C3.5 18.9404 4.05964 19.5 4.75 19.5H19.25C19.9404 19.5 20.5 18.9404 20.5 18.25V7.5H3.5V18.25Z</StreamGeometry>
+            <StreamGeometry x:Key="MusicRegular">M11.5,2.75 C11.5,2.22634895 12.0230228,1.86388952 12.5133347,2.04775015 L18.8913911,4.43943933 C20.1598961,4.91511241 21.0002742,6.1277638 21.0002742,7.48252202 L21.0002742,10.7513533 C21.0002742,11.2750044 20.4772513,11.6374638 19.9869395,11.4536032 L13,8.83332147 L13,17.5 C13,17.5545945 12.9941667,17.6078265 12.9830895,17.6591069 C12.9940859,17.7709636 13,17.884807 13,18 C13,20.2596863 10.7242052,22 8,22 C5.27579485,22 3,20.2596863 3,18 C3,15.7403137 5.27579485,14 8,14 C9.3521238,14 10.5937815,14.428727 11.5015337,15.1368931 L11.5,2.75 Z M8,15.5 C6.02978478,15.5 4.5,16.6698354 4.5,18 C4.5,19.3301646 6.02978478,20.5 8,20.5 C9.97021522,20.5 11.5,19.3301646 11.5,18 C11.5,16.6698354 9.97021522,15.5 8,15.5 Z M13,3.83223733 L13,7.23159672 L19.5002742,9.669116 L19.5002742,7.48252202 C19.5002742,6.75303682 19.0477629,6.10007069 18.3647217,5.84393903 L13,3.83223733 Z</StreamGeometry>
+            <StreamGeometry x:Key="DismissCircle">M24,4 C35.045695,4 44,12.954305 44,24 C44,35.045695 35.045695,44 24,44 C12.954305,44 4,35.045695 4,24 C4,12.954305 12.954305,4 24,4 Z M24,6.5 C14.3350169,6.5 6.5,14.3350169 6.5,24 C6.5,33.6649831 14.3350169,41.5 24,41.5 C33.6649831,41.5 41.5,33.6649831 41.5,24 C41.5,14.3350169 33.6649831,6.5 24,6.5 Z M17.7823881,16.0249942 L17.8838835,16.1161165 L24,22.233 L30.1161165,16.1161165 C30.5717282,15.6605048 31.2915486,15.6301307 31.7823881,16.0249942 L31.8838835,16.1161165 C32.3394952,16.5717282 32.3698693,17.2915486 31.9750058,17.7823881 L31.8838835,17.8838835 L25.767,24 L31.8838835,30.1161165 C32.3394952,30.5717282 32.3698693,31.2915486 31.9750058,31.7823881 L31.8838835,31.8838835 C31.4282718,32.3394952 30.7084514,32.3698693 30.2176119,31.9750058 L30.1161165,31.8838835 L24,25.767 L17.8838835,31.8838835 C17.4282718,32.3394952 16.7084514,32.3698693 16.2176119,31.9750058 L16.1161165,31.8838835 C15.6605048,31.4282718 15.6301307,30.7084514 16.0249942,30.2176119 L16.1161165,30.1161165 L22.233,24 L16.1161165,17.8838835 C15.6605048,17.4282718 15.6301307,16.7084514 16.0249942,16.2176119 L16.1161165,16.1161165 C16.5717282,15.6605048 17.2915486,15.6301307 17.7823881,16.0249942 Z</StreamGeometry>
+            <StreamGeometry x:Key="DeleteRegular">M24,7.25 C27.1017853,7.25 29.629937,9.70601719 29.7458479,12.7794443 L29.75,13 L37,13 C37.6903559,13 38.25,13.5596441 38.25,14.25 C38.25,14.8972087 37.7581253,15.4295339 37.1278052,15.4935464 L37,15.5 L35.909,15.5 L34.2058308,38.0698451 C34.0385226,40.2866784 32.1910211,42 29.9678833,42 L18.0321167,42 C15.8089789,42 13.9614774,40.2866784 13.7941692,38.0698451 L12.09,15.5 L11,15.5 C10.3527913,15.5 9.8204661,15.0081253 9.75645361,14.3778052 L9.75,14.25 C9.75,13.6027913 10.2418747,13.0704661 10.8721948,13.0064536 L11,13 L18.25,13 C18.25,9.82436269 20.8243627,7.25 24,7.25 Z M33.4021054,15.5 L14.5978946,15.5 L16.2870795,37.8817009 C16.3559711,38.7945146 17.116707,39.5 18.0321167,39.5 L29.9678833,39.5 C30.883293,39.5 31.6440289,38.7945146 31.7129205,37.8817009 L33.4021054,15.5 Z M27.25,20.75 C27.8972087,20.75 28.4295339,21.2418747 28.4935464,21.8721948 L28.5,22 L28.5,33 C28.5,33.6903559 27.9403559,34.25 27.25,34.25 C26.6027913,34.25 26.0704661,33.7581253 26.0064536,33.1278052 L26,33 L26,22 C26,21.3096441 26.5596441,20.75 27.25,20.75 Z M20.75,20.75 C21.3972087,20.75 21.9295339,21.2418747 21.9935464,21.8721948 L22,22 L22,33 C22,33.6903559 21.4403559,34.25 20.75,34.25 C20.1027913,34.25 19.5704661,33.7581253 19.5064536,33.1278052 L19.5,33 L19.5,22 C19.5,21.3096441 20.0596441,20.75 20.75,20.75 Z M24,9.75 C22.2669685,9.75 20.8507541,11.1064548 20.7551448,12.8155761 L20.75,13 L27.25,13 C27.25,11.2050746 25.7949254,9.75 24,9.75 Z</StreamGeometry>
+            <!-- Colors -->
+            <Color x:Key="Danger">#FF0000</Color>
+            <Color x:Key="DangerDark">#AA0000</Color>
+        </Style.Resources>
+````
+
+Ahora vamos a crear dos nuevos estilos en nuestro archivo de estilos de botones. Primero vamos a crear un estilo que utilizará el color ``Danger`` para las acciones peligrosas o destructivas, como la acción de borrar.
+
+````xml title=Buttons.axaml
+<Style Selector="Button.danger">
+    <!-- Hover -->
+    <Style Selector="^:pointerover">
+        <Style Selector="^ PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource Danger}" />
+        </Style>
+    </Style>
+    
+    <!-- Pressed -->
+    <Style Selector="^:pressed">
+        <Style Selector="^ PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource DangerDark}" />
+        </Style>
+    </Style>
+
+    <!-- Selected -->
+    <Style Selector="^:selected">
+        <Style Selector="^ PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource Danger}" />
+        </Style>
+    </Style>
+
+    <!-- Focused -->
+    <Style Selector="^:focused">
+        <Style Selector="^ PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource Danger}" />
+        </Style>
+    </Style>
+</Style>
+````
+
+Los botones con la clase ``danger`` mostrarán el icono en rojo al pasar el ratón por encima. Como vamos a mostrar el icono encima de la carátula del álbum, podría no verse bien en portadas blancas o rojas, así que vamos a crear un estilo de botón que tenga un fondo semitransparente oscuro, además será redondo para darle más estilo.
+
+````xml title=Buttons.axaml
+<Style Selector="Button.rounded">
+    <Setter Property="Background" Value="#78000000"></Setter>
+    <Setter Property="CornerRadius" Value="24"></Setter>
+
+    <!-- Disabled -->
+    <Style Selector="^:disabled">
+        <Style Selector="^ /template/ ContentPresenter">
+            <Setter Property="Background" Value="#3C000000"></Setter>
+        </Style>
+    </Style>
+
+    <!-- Hover -->
+    <Style Selector="^:pointerover">
+        <Style Selector="^ /template/ ContentPresenter">
+            <Setter Property="Background" Value="#5A000000"></Setter>
+        </Style>
+    </Style>
+
+    <!-- Pressed -->
+    <Style Selector="^:pressed">
+        <Style Selector="^ /template/ ContentPresenter">
+            <Setter Property="Background" Value="#A0000000"></Setter>
+        </Style>
+    </Style>
+
+    <!-- Selected -->
+    <Style Selector="^:selected">
+        <Style Selector="^ /template/ ContentPresenter">
+            <Setter Property="Background" Value="#5A000000"></Setter>
+        </Style>
+    </Style>
+
+    <!-- Focused -->
+    <Style Selector="^:focused">
+        <Style Selector="^ /template/ ContentPresenter">
+            <Setter Property="Background" Value="#5A000000"></Setter>
+        </Style>
+    </Style>
+</Style>
+````
+
+Este estilo muestra el fondo redondo negro con distintas opacidades según su estado. Ahora ya debería verse bien sobre cualquier carátula.
+Además actualizamos el estilo de la clase ``icon`` con un par de cambios para que concida en tamaño con este nuevo estilo con fondo.
+
+````xml title=Buttons.axaml ins={5-7} del={3,4}
+<Style Selector="Button.icon">
+    <Setter Property="Background" Value="Transparent"></Setter>
+    <Setter Property="Width" Value="36" />
+    <Setter Property="Height" Value="36" />
+    <Setter Property="Width" Value="48" />
+    <Setter Property="Height" Value="48" />
+    <Setter Property="Cursor" Value="Hand"></Setter>
+    <Style Selector="^ PathIcon">
+        <Setter Property="Width" Value="24" />
+        <Setter Property="Height" Value="24" />
+    </Style>
+````
+
+Con estos nuevos estilos, nos vamos a nuestro ``AlbumView`` y añadimos el icono sobre la imagen de la portada.
+
+````xml title=AlbumView.axaml ins={6-8}
+    <Panel Background="#7FFF22DD">
+        <Panel Height="200" IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNull}}">
+            <PathIcon Height="75" Width="75" Data="{StaticResource MusicRegular}" />
+        </Panel>
+        <Image Width="200" Height="200" Stretch="UniformToFill" Source="{Binding Cover}" />
+        <Button Classes="icon danger rounded" Margin="10" HorizontalAlignment="Right" VerticalAlignment="Top">
+            <PathIcon Data="{StaticResource DeleteRegular}" />
+        </Button>
+    </Panel>
+````
+
+Nuestro botón ya se está mostrando, en todos los álbumes correctamente. A continuación veremos como mostrarlo solo en el momento deseado.
+
+## Mostrar el botón
+
+Este botón debe mostrarse solo en la lista de la colección y además estará oculto y se verá únicamente cuando se pase el puntero sobre el álbum correspondiente; así que, debemos aplicar estas dos condiciones a la hora de decidir si se debe mostrar o no.
+
+Para aplicar estas condiciones vamos a ocultar el botón por defecto y hacer uso de clases condicionales para mostrarlo solo en la colección. Lo primero es añadir los estilos al UserControl para ocultarlo por defecto y que se muestre solo al pasar el cursor por encime si, y solo si, el panel tiene la clase ``removable``.
+
+````xml title=AlbumView.axaml
+    <UserControl.Styles>
+        <Style Selector="StackPanel Button">
+            <Setter Property="IsVisible" Value="False"></Setter>
+        </Style>
+        <Style Selector="StackPanel.removable:pointerover Button">
+            <Setter Property="IsVisible" Value="True"></Setter>
+        </Style>
+    </UserControl.Styles>
+````
+
+Ahora creemos una propiedad en el ViewModel que esté por defecto a ``false`` para cambiarla a nuestro antojo.
+
+````cs title=AlbumViewModel.cs
+    [ObservableProperty]
+    private bool _showDelete;
+````
+
+Ahora podemos usar esta propiedad en nuestra vista para aplicar la clase ``removable`` de forma condicional.
+
+````xml title=AlbumView.axaml ins=' Classes.removable="{Binding ShowDelete}"'
+<StackPanel Spacing="5" Width="200" Classes.removable="{Binding ShowDelete}">
+    <Border CornerRadius="10" ClipToBounds="True">
+````
+
+De esta forma cuando creamos las vistas de cada álbum tenemos la opción de elegir si se mostrará el botón de eliminar o no; así en nuestra colección cuando creamos cada álbum podemos actualizar la propiedad que lo controla.
+
+````cs title=MainWindowViewModel.cs ins={10,21-24} del={20}
+//...
+    private async Task BuyMusic()
+    {
+        var store = new MusicStoreViewModel();
+
+        var result = await ShowDialog.HandleAsync(store);
+        if (result != null)
+        {
+            Albums.Add(result);
+            result.ShowDelete = true;
+            await result.SaveToDiskAsync();
+        }
+    }
+//...
+    private async void LoadAlbums()
+    {
+        var albums = await _cacheService.LoadCachedAsync();
+        foreach (var album in albums)
+        {
+            AlbumViewModel vm = new AlbumViewModel(album);
+            AlbumViewModel vm = new AlbumViewModel(album)
+            {
+                ShowDelete = true
+            };
+            Albums.Add(vm);
+            vm.LoadCover();
+        }
+    }
+//...
+````
+
+¡Listo! Nuestro botón ya se muestra en la colección al pasar el puntero por encima y no se ve en la búsqueda, además con los nuevos estilos se ve sin importar que el álbum tenga una portada negra o blanca.
+
+## Comunicar evento y eliminar
+
+Con toda la parte de la interfaz funcionando, ya solo queda que al pulsar el botón se quite dicho álbum de la colección. Dado que la acción de pulsar eliminar ocurre en el componente del álbum pero la lista existe en el MainWindow será necesario comunicar ambos componentes.
+
+Para estos casos, el Community toolkit nos da la opción de utilizar paso de mensajes. Generamos un mensaje en el álbum al pulsar el botón y la vista de la colección escuchará dichos mensajes para actuar en consecuencia, como si se tratase de un evento más.
+
+Lo primero para empezar generar mensajes es crear una clase que represente nuestro mensaje, así podemos omitir todos los mensajes que no sean del tipo que queremos escuchar.
+
+````cs title=Messages/RemoveAlbum.cs
+using Avalonia.MusicStore.ViewModels;
+
+namespace Avalonia.MusicStore.Messages;
+
+public class RemoveAlbum(AlbumViewModel value) : ValueChangedMessage<AlbumViewModel>(value);
+````
+
+Este evento contiene el álbum que queremos eliminar y ahora podemos empezar a enviar estos mensajes cuando se pulse el botón de eliminar.
+
+````cs title=AlbumViewModel.cs
+[RelayCommand]
+private void Delete()
+{
+    WeakReferenceMessenger.Default.Send(new RemoveAlbum(this));
+}
+````
+
+Y en la vista conectamos el botón con el comando.
+
+````xml title=AlbumView.axaml
+<Button Classes="icon danger rounded" Margin="10" HorizontalAlignment="Right" 
+        VerticalAlignment="Top" Command="{Binding DeleteCommand}">
+    <PathIcon Data="{StaticResource DeleteRegular}" />
+</Button>
+````
+
+El último paso es escuchar estos mensajes desde nuestra vista de colección, la ventana principal.
+
+````cs title=MainWindowViewModel.cs ins={6-7}
+    public MainWindowViewModel()
+    {
+        ShowDialog = new Interaction<MusicStoreViewModel, AlbumViewModel?>();
+        Dispatcher.UIThread.Post(LoadAlbums);
+
+        WeakReferenceMessenger.Default.Register<RemoveAlbum>(this,
+            (_, message) => { Albums.Remove(message.Value); });
+    }
+````
+
+Nuestro botón ya funciona perfectamente, se genera el evento en cada álbum y llega a la vista principal donde se eliminar; aunque solo se elimina para esta sesión, puesto que la colección se persiste y de momento solo lo hemos eliminado de la lista.
+
+### Borrar álbum de la caché
+
+Ahora que está todo engrasado y funcionando solo falta borrar el álbum de la persistencia para que la acción de eliminar sea consistente. Podemos añadir este comportamiento de forma análoga a como hicimos para persistirlos.
+
+````cs title=CacheService.cs
+    public void Remove(Album album)
+    {
+        EnsureDirectoryExists();
+
+        var albumPath = CachePath(album) + DataExtension;
+        if (File.Exists(albumPath))
+        {
+            File.Delete(albumPath);
+        }
+        var coverPath = CachePath(album) + ImageExtension;
+        if (File.Exists(coverPath))
+        {
+            File.Delete(coverPath);
+        }
+    }
+````
+
+Esta función la podríamos llamar desde nuestro álbum al pulsar el botón de eliminar o desde la colección al recibir el evento, por simplificar, llegados a este punto, vamos a hacerlo desde el propio álbum.
+
+````cs title=AlbumViewModel.cs ins={4}
+    [RelayCommand]
+    private void Delete()
+    {
+        _cacheService.Remove(Album);
+        WeakReferenceMessenger.Default.Send(new RemoveAlbum(this));
+    }
+````
+
+¡Ahora sí, podemos eliminar los álbumes de la colección de formas persistente!
+
+

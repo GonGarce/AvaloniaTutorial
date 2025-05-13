@@ -1,9 +1,11 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.MusicStore.Messages;
 using CommunityToolkit.Mvvm.Input;
 using Avalonia.MusicStore.Services;
 using Avalonia.Threading;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace Avalonia.MusicStore.ViewModels;
 
@@ -13,6 +15,9 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         ShowDialog = new Interaction<MusicStoreViewModel, AlbumViewModel?>();
         Dispatcher.UIThread.Post(LoadAlbums);
+
+        WeakReferenceMessenger.Default.Register<RemoveAlbum>(this,
+            (_, message) => { Albums.Remove(message.Value); });
     }
 
     private readonly CacheService _cacheService = CacheService.Instance;
@@ -26,6 +31,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (result != null)
         {
             Albums.Add(result);
+            result.ShowDelete = true;
             await result.SaveToDiskAsync();
         }
     }
@@ -43,6 +49,7 @@ public partial class MainWindowViewModel : ViewModelBase
         foreach (var album in albums)
         {
             AlbumViewModel vm = new AlbumViewModel(album);
+            vm.ShowDelete = true;
             Albums.Add(vm);
             vm.LoadCover();
         }

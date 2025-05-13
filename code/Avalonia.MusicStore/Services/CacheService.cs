@@ -51,6 +51,22 @@ public class CacheService
         return File.Exists(CachePath(album)+ ".bmp") ? File.OpenRead(CachePath(album) + ".bmp") : null;
     }
     
+    public void Remove(Album album)
+    {
+        EnsureDirectoryExists();
+
+        var albumPath = CachePath(album) + DataExtension;
+        if (File.Exists(albumPath))
+        {
+            File.Delete(albumPath);
+        }
+        var coverPath = CachePath(album) + ImageExtension;
+        if (File.Exists(coverPath))
+        {
+            File.Delete(coverPath);
+        }
+    }
+    
     private async Task SaveToStreamAsync(Album data, Stream stream)
     {
         await JsonSerializer.SerializeAsync(stream, data).ConfigureAwait(false);

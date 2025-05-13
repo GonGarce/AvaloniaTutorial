@@ -11,13 +11,26 @@
         <vm:AlbumViewModel Title="Title test" Artist="Artist test" />
     </Design.DataContext>
 
-    <StackPanel Spacing="5" Width="200">
+    <UserControl.Styles>
+        <Style Selector="StackPanel Button">
+            <Setter Property="IsVisible" Value="False"></Setter>
+        </Style>
+        <Style Selector="StackPanel.removable:pointerover Button">
+            <Setter Property="IsVisible" Value="True"></Setter>
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel Spacing="5" Width="200" Classes.removable="{Binding ShowDelete}">
         <Border CornerRadius="10" ClipToBounds="True">
             <Panel Background="#7FFF22DD">
-                <Image Width="200" Height="200" Stretch="UniformToFill" Source="{Binding Cover}" />
                 <Panel Height="200" IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNull}}">
                     <PathIcon Height="75" Width="75" Data="{StaticResource MusicRegular}" />
                 </Panel>
+                <Image Width="200" Height="200" Stretch="UniformToFill" Source="{Binding Cover}" />
+                <Button Classes="icon danger rounded" Margin="10" HorizontalAlignment="Right"
+                        VerticalAlignment="Top" Command="{Binding DeleteCommand}">
+                    <PathIcon Data="{StaticResource DeleteRegular}" />
+                </Button>
             </Panel>
         </Border>
         <TextBlock HorizontalAlignment="Center" Text="{Binding Title}" />
