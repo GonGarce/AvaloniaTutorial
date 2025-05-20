@@ -70,6 +70,13 @@ export default defineConfig({
           },
           autogenerate: { directory: "6-more" },
         },
+        {
+          label: "Cheatsheet",
+          translations: {
+            en: "Cheatsheet",
+          },
+          autogenerate: { directory: "7-summary" },
+        },
       ],
       defaultLocale: "root",
       locales: {

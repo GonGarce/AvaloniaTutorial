@@ -1,0 +1,244 @@
+---
+title: Estilos
+---
+
+Este capítulo hace un repaso rápido de los aspectos más importantes a la hora de declarar estilos en nuestra aplicación de Avalonia.
+
+## Incluir estilos en ``App.axaml``
+
+Podemos organizar los estilos de nuestra aplicación como queramos, pero si los tenemos en ficheros independientes siempre debemos recordar incluirlos en la aplicación.
+
+````xml title=App.axaml
+    <Application.Styles>
+        <FluentTheme DensityStyle="Normal" />
+        <StyleInclude Source="Styles/Icons.axaml" />
+        <StyleInclude Source="Styles/Colors.axaml" />
+        <StyleInclude Source="Styles/Buttons.axaml" />
+        <StyleInclude Source="Styles/General.axaml" />
+    </Application.Styles>
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <MergeResourceInclude Source="Resources/Constants.axaml" />
+                <MergeResourceInclude Source="Resources/StaticTexts.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+````
+
+## Selector
+
+El selector es la propiedad de los estilos que nos permite indicar sobre que componente se aplican. Esta propiedad es obligatoria ya que no todos los componentes tienen las mismas propiedades, por ejemplo, a un ``TextBlock`` le podemos indicar un ``Padding`` pero a un ``StackPanel`` no.
+
+````xml 'Selector="Button"'
+    <Style Selector="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Width" Value="36" />
+        <Setter Property="Height" Value="36" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+````
+
+Este estilo aplicará a todos los botones.
+
+### Clases
+
+Al igual que en html, en axaml podemos utilizar clases para diferenciar componentes del mismo tipo y aplicar estilos de forma selectiva. De forma análoga, las clases se representan con un punto ``.``, así pues.
+
+````xml '.big'
+    <Style Selector="Button.big">
+        <Setter Property="Width" Value="64" />
+        <Setter Property="Height" Value="64" />
+    </Style>
+````
+
+Este estilo aplicará solo a los botones que tengan la clase ``big``:
+
+````xml 'Classes="big"'
+    <Button Classes="big">
+        I'm a big BUTTON
+    </Button>
+````
+
+### Clases condicionales
+
+Igual que JS nos permite añadir y eliminar clases CSS para cambiar el estilo de los elementos dinámicamente, en Avalonia podemos aplicar clases de forma condicional, para cambiar los estilos de los componentes.
+
+````xml 'Classes.big="{Binding IsBig}"'
+    <Button Classes.big="{Binding IsBig}">
+        I'm a big BUTTON
+    </Button>
+````
+
+Ahora, la clase ``big`` solo estará activa cuando la propiedad observada ``IsBig`` se calcule como un valor verdadero (``true``), en caso contrario no se aplicarán los estilos de la clase ``big``.
+
+### Pseudo-clases
+
+Las pseudo clases son un tipo de clase especial que se utiliza para representar distintos estados de los componentes. Funcionan de forma similar a CSS y HTML, aunque las clases son distintas. Así, si queremos modificar el estilo de un componente cuando está deshabilitado, activo, seleccionado, con el puntero encima, etc., podemos usar estas clases especiales.
+
+
+````xml 'Classes.big="{Binding IsBig}"'
+    <Style Selector="Button:pointerover">
+        <Setter Property="Width" Value="48" />
+        <Setter Property="Height" Value="48" />
+    </Style>
+````
+
+Ahora, al pasar el puntero por encima de cualquier botón, su tamaño aumentará. Otras pseudo clases muy utilizadas son:
+* pointerover
+* pressed
+* selected
+* focus
+* disabled
+
+Además estas pseudo clases se pueden usar juntas para cuando varios de estos estados aplican. Más información: https://docs.avaloniaui.net/docs/reference/styles/pseudo-classes
+
+### Anidar selectores
+
+Para mantener nuestro código más organizado y podemos anidar estilos dentro de otros, utilizando el caracter ``^`` que representa al estilo padre; así se podía reorganizar el siguiente código.
+
+````xml ins={6-10} del={12-15}
+    <Style Selector="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Width" Value="36" />
+        <Setter Property="Height" Value="36" />
+        <Setter Property="Cursor" Value="Hand" />
+
+        <Style Selector="^:pointerover">
+            <Setter Property="Width" Value="48" />
+            <Setter Property="Height" Value="48" />
+        </Style>
+    </Style>
+    <Style Selector="Button:pointerover">
+        <Setter Property="Width" Value="48" />
+        <Setter Property="Height" Value="48" />
+    </Style>
+````
+
+O el siguiente código, donde se cambian los estilos de un botón con la clase ``icon`` y cualquier ``PathIcon`` que contenga.
+
+````xml ins={6-10} del={12-15}
+    <Style Selector="Button.icon">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Width" Value="36" />
+        <Setter Property="Height" Value="36" />
+        <Setter Property="Cursor" Value="Hand" />
+
+        <Style Selector="^ PathIcon">
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+        </Style>
+    </Style>
+    <Style Selector="Button.icon PathIcon">
+        <Setter Property="Width" Value="24" />
+        <Setter Property="Height" Value="24" />
+    </Style>
+````
+
+## Estilos como propiedades
+
+Siempre es mejor organizar los estilos que usaremos en toda la aplicación en ficheros independientes, pero si queremos aplicar un estilo a un único componente, podemos hacerlo declarandolo como una propiedad adjunta.
+
+````xml title=TodoTaskView.axaml
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:AvaloniaTodoAPp.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="AvaloniaTodoAPp.Views.TodoTaskView"
+             x:DataType="vm:TodoTaskViewModel">
+    <UserControl.Styles>
+        <Style Selector="TextBlock.completed">
+            <Setter Property="Opacity" Value="0.5" />
+            <Setter Property="TextDecorations" Value="Strikethrough" />
+        </Style>
+        <Style Selector="Border.row:pointerover">
+            <Setter Property="Background" Value="#F3F3F3" />
+        </Style>
+        <Style Selector="Border.row:focus">
+            <Setter Property="Background" Value="#F3F3F3" />
+        </Style>
+    </UserControl.Styles>
+````
+
+Estos estilos solo se aplicarán a los componentes de esta vista.
+
+Todos los componentes cuentan con una propiedad adjunta ``Styles``, así que podemos aplicar estilos de esta forma siempre que queramos.
+
+````xml title=TodoTaskView.axaml
+<TextBlock Text="Texto tachado">
+    <TextBlock.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="FontSize" Value="16"></Setter>
+            <Setter Property="TextDecorations" Value="Strikethrough"></Setter>
+        </Style>
+    </TextBlock.Styles>
+</TextBlock>
+````
+
+Estos estilos se aplicarán solo a este texto concreto.
+
+Además esta forma de declarar estilos es igual que cualquier otra, así que podemos hacer uso de todas las opciones anteriores como clases, pseudo clases, anidamiento, etc., por ejemplo:
+
+````xml title=TodoTaskView.axaml
+<TextBlock Text="Texto de enlace">
+    <TextBlock.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="Blue"></Setter>
+
+            <Style Selector="^:pointerover">
+                <Setter Property="TextDecorations" Value="Underline"></Setter>
+            </Style>
+        </Style>
+    </TextBlock.Styles>
+</TextBlock>
+````
+
+Este texto representa un enlace que saldrá azul y al pasar el puntero por encima saldrá subrayado, aunque es importante recordar que estilos de este tipo que pueden reutilizarse es mejor declararlos de forma global.
+
+## Templates
+
+En algunas ocasiones es necesario hacer referencia a la plantilla del componente para modificar sus estilos, como por ejemplo para cambiar el fondo del elemento seleccionado de la lista tuvimos que hacer:
+
+````xml
+    <ListBox.Styles>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="RoyalBlue" />
+        </Style>
+        <Style Selector="ListBoxItem">
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
+    </ListBox.Styles>
+````
+
+Esto sucede en componentes contenedores, es decir, componentes que pueden contener a otros, como la lista, los paneles, los botones, etc.
+
+Estos componentes declaran algunas de sus propiedades de forma interna y para sobreescribirlas es necesario acceder al elemento que queremos modificar.
+
+Por ejemplo, si queremos modificar el fondo de un botón cuando tiene el puntero encima, lo siguiente no funcionará:
+
+````xml
+<Style Selector="Button:pointerover">
+    <Setter Property="Background" Value="Red" />
+</Style>
+````
+
+Si vamos al código del componente botón de Avalonia (es código abierto): https://github.com/AvaloniaUI/Avalonia/blob/master/src/Avalonia.Themes.Fluent/Controls/Button.xaml#L45
+
+````xml
+    <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource ButtonBackgroundPointerOver}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrushPointerOver}" />
+      <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundPointerOver}" />
+    </Style>
+````
+
+Vemos que el propio botón declara la propiedad del fondo sobre el ``ContentPresenter``, así que para sobre escribirlo debemos hacer lo mismo, modificando nuestro estilo:
+
+````xml
+<Style Selector="Button:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="Red" />
+</Style>
+````

@@ -1,0 +1,116 @@
+---
+title: Del VistaModelo a la Vista
+---
+
+En este capítulo vamos a repasar como Avalonia relaciona cada Vista con su VistaModelo correspondiente
+
+## ViewLocator
+
+El ``ViewLocator`` se declara al cargar la aplicación y se puede encontrar en el fichero ``App.axaml``.
+
+````xml title=App.axaml
+    <Application.DataTemplates>
+        <local:ViewLocator />
+    </Application.DataTemplates>
+````
+
+Esta clases es la encargada de encontrar las vistas para nuestros ViewModels. Cuando en nuestras vistas mostramos algún ViewModel, por ejemplo aquí:
+
+````cs title=MainWindowViewModel.cs
+public IEnumerable<TodoTaskViewModel> ShowedTasks => FilterTasks();
+````
+
+````xml title=MainWindow.axaml
+<ScrollViewer>
+    <ItemsControl Background="Transparent"
+                  Margin="20 0"
+                  ItemsSource="{Binding ShowedTasks}"/>
+</ScrollViewer>
+````
+
+La aplicación necesita saber que vista utilizar para representar dicho ViewModel, si no le indicamos una plantilla de forma explícita, recurrirá al ViewLocator para buscar alguna vista.
+
+Analicemos el código del ``ViewLocator``.
+
+````cs title=ViewLocator.cs
+    public bool Match(object? data)
+    {
+        return data is ViewModelBase;
+    }
+````
+
+Este método indica cuando se utilizará el ``ViewLocator``, como podemos ver solo se usará si nuestra clase hereda de ``ViewModelBase``, así que es un requisito imprescindible para que identifique nuestras vistas.
+
+````cs title=ViewLocator.cs {6}
+    public Control? Build(object? data)
+    {
+        if (data is null)
+            return null;
+
+        var name = data.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
+        var type = Type.GetType(name);
+
+        if (type != null)
+        {
+            var control = (Control)Activator.CreateInstance(type)!;
+            control.DataContext = data;
+            return control;
+        }
+
+        return new TextBlock { Text = "Not Found: " + name };
+    }
+````
+
+Este método es el que se encarga de crear la vista a partir del ViewModel y podemos ver que mecanismo utiliza para identificar que vista debe utilizar, el ``ViewLocator`` por defecto es muy simple, sustituye todas las cadenas de texto "ViewModel" por "View".
+
+Este es el verdadero motivo por el que seguimos esta estructura y nomenclatura a la hora de crear la vistas y los ViewModel, para que el ViewLocator pueda localizar las vistas correspondientes:
+
+``ViewModels/TodoTaskViewModel.cs`` -> ``Views/TodoTaskView.axaml``
+
+Aunque podríamos organizarlo de otras formas que también funcionarían con este ``ViewLocator``:
+
+``TodoTask/ViewModel.cs`` -> ``TodoTask/View.axaml``
+
+``ViewModels/TodoTask.cs`` -> ``Views/TodoTask.axaml``
+
+
+## Ventanas
+
+Si nos fijamos, las vetanas no han seguido estas reglas de nombrado durante el desarrollo de este proyecto, eso se debe a que no hacen uso del ViewLocator.
+
+Podemos recordar el capítulo en el que abrimos la ventana de búsqueda, primero se crea la ventana desde la vista y hay dos opciones, o instancia su propio ViewModel o recibe uno como parámetro que asocia a su ``DataContext``.
+
+En el caso de la ventana principal del programa, es la aplicación la que la crea y asocia el ViewModel con la ventana:
+
+````cs title=App.axaml.cs {8-11}
+    public override void OnFrameworkInitializationCompleted()
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            // Line below is needed to remove Avalonia data validation.
+            // Without this line you will get duplicate validations from both Avalonia and CT
+            BindingPlugins.DataValidators.RemoveAt(0);
+            desktop.MainWindow = new MainWindow
+            {
+                DataContext = new MainWindowViewModel(),
+            };
+        }
+
+        base.OnFrameworkInitializationCompleted();
+    }
+````
+
+En la ventana modal que abrimos para buscar álbumes nosotros creamos la ventana y le pasamos el ViewModel para que lo asocie ella misma:
+
+````cs title=MainWindow.axaml.cs "MusicStoreViewModel vm" {3,4}
+    private async Task<AlbumViewModel?> InteractionHandler(MusicStoreViewModel vm)
+    {
+        var dialog = new MusicStoreWindow();
+        dialog.DataContext = vm;
+
+        var result = await dialog.ShowDialog<AlbumViewModel?>(this);
+        
+        return result;
+    }
+````
+
